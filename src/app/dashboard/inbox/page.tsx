@@ -34,11 +34,11 @@ export default function InboxPage() {
     <div className="max-w-4xl mx-auto px-6 py-8 md:py-12 bg-white min-h-screen">
       
       {/* Header Row */}
-      <div className="flex items-center justify-between pb-6 border-b border-gray-100 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100 mb-8">
         
         {/* Left Side: Icon, Title, Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
             <Inbox className="h-5 w-5 text-blue-600" />
           </div>
           <div className="flex items-center gap-2">
@@ -50,8 +50,8 @@ export default function InboxPage() {
         </div>
 
         {/* Right Side: Search & Add Button */}
-        <div className="flex items-center gap-3">
-          <div className="relative w-64">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -63,10 +63,10 @@ export default function InboxPage() {
           </div>
           <button
             onClick={() => setDialogOpen(true)}
-            className="group flex items-center gap-2 h-9 px-3.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+            className="group flex items-center justify-center gap-2 h-9 px-3.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors shrink-0"
           >
             <Plus className="w-4 h-4 opacity-80" />
-            Add task
+            <span className="hidden sm:inline">Add task</span>
           </button>
         </div>
       </div>
@@ -76,10 +76,10 @@ export default function InboxPage() {
         {filtered.length > 0 ? (
           <div>
             <div className="flex items-center gap-3 text-xs font-medium text-gray-400 uppercase tracking-wider px-3 pb-2 border-b border-gray-100 mb-2">
-              <div className="w-5" /> {/* Checkbox spacer */}
-              <div className="flex-1">Task</div>
-              <div className="w-24 text-right pr-1">Priority</div>
-              <div className="w-6" /> {/* Actions spacer */}
+              <div className="w-5 shrink-0" /> {/* Checkbox spacer */}
+              <div className="flex-1 min-w-0">Task</div>
+              <div className="w-16 sm:w-24 text-right pr-1 shrink-0">Priority</div>
+              <div className="w-6 shrink-0" /> {/* Actions spacer */}
             </div>
 
             <div className="space-y-0.5">

@@ -84,7 +84,7 @@ export function LinearTaskRow({
 
       {/* Index (w-6) */}
       {isDailyTop3 && typeof index === "number" && (
-        <div className="w-6 flex-shrink-0 text-center text-xs font-mono text-gray-400 opacity-50">
+        <div className="hidden sm:block w-6 flex-shrink-0 text-center text-xs font-mono text-gray-400 opacity-50">
           #{index + 1}
         </div>
       )}
@@ -131,15 +131,15 @@ export function LinearTaskRow({
         )}
       </div>
 
-      {/* Priority Badge (w-24) */}
-      <div className="w-24 flex justify-end flex-shrink-0">
+      {/* Priority Badge */}
+      <div className="w-16 sm:w-24 flex justify-end flex-shrink-0">
         <div className={cn(
           "flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-medium",
           priority.bgClass, priority.borderClass, priority.colorClass,
           task.is_completed && "opacity-50 grayscale"
         )}>
           <PriorityIcon className="w-3 h-3" />
-          {priority.label}
+          <span className="hidden sm:inline">{priority.label}</span>
         </div>
       </div>
 

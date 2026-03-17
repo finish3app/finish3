@@ -193,7 +193,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* 2.3 Content Area */}
-      <div className="max-w-4xl mx-auto px-8 md:px-12 pb-32 -mt-12 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 md:px-12 pb-32 -mt-12 relative z-10">
         
         {/* 2.5 Emoji Picker */}
         <div className="mb-4">
@@ -224,7 +224,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
               }
             }}
             placeholder="Untitled"
-            className="text-4xl font-bold text-gray-900 placeholder:text-gray-300 bg-transparent border-none focus:ring-0 p-0 w-full outline-none leading-tight"
+            className="text-3xl sm:text-4xl font-bold text-gray-900 placeholder:text-gray-300 bg-transparent border-none focus:ring-0 p-0 w-full outline-none leading-tight"
           />
           
           <DropdownMenu>

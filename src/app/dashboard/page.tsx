@@ -45,23 +45,23 @@ export default function TodayPage() {
     <div className="max-w-4xl mx-auto px-6 py-8 md:py-12 bg-white min-h-screen">
       
       {/* LinearHeader */}
-      <div className="flex items-center justify-between pb-6 border-b border-gray-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex flex-col items-center justify-center shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex flex-col items-center justify-center shadow-sm shrink-0">
             <span className="text-[10px] uppercase font-bold text-red-500 leading-none tracking-wider">{monthStr}</span>
             <span className="text-xl font-bold text-gray-900 leading-none mt-0.5">{dayStr}</span>
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">Today</h1>
-            <p className="text-sm text-gray-500 font-medium">{dateSubTitle}</p>
+            <p className="text-sm text-gray-500 font-medium line-clamp-1">{dateSubTitle}</p>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col items-start sm:items-end gap-1.5 w-full sm:w-auto bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Daily Progress</span>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700">{completedCount}/{totalTop3Count}</span>
-            <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="text-sm font-medium text-gray-700 w-8">{completedCount}/{totalTop3Count}</span>
+            <div className="flex-1 sm:w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-violet-600 rounded-full transition-all duration-500 ease-out" 
                 style={{ width: `${progress}%` }} 
@@ -76,11 +76,11 @@ export default function TodayPage() {
           <>
             {/* List Header */}
             <div className="flex items-center gap-3 text-xs font-medium text-gray-400 uppercase tracking-wider px-3 pb-2 border-b border-gray-100 mb-2">
-              <div className="w-5" /> {/* Checkbox spacer */}
-              <div className="w-6 text-center">#</div>
-              <div className="flex-1">Task</div>
-              <div className="w-24 text-right pr-1">Priority</div>
-              <div className="w-6" /> {/* Actions spacer */}
+              <div className="w-5 shrink-0" /> {/* Checkbox spacer */}
+              <div className="w-6 text-center hidden sm:block shrink-0">#</div>
+              <div className="flex-1 min-w-0">Task</div>
+              <div className="w-16 sm:w-24 text-right pr-1 shrink-0">Priority</div>
+              <div className="w-6 shrink-0" /> {/* Actions spacer */}
             </div>
 
             {/* Tasks Array mapping */}
