@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
-  const profileFetchedRef = useRef(false);
+  const initializedRef = useRef(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -55,45 +55,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id, fetchProfile]);
 
   useEffect(() => {
-    profileFetchedRef.current = false;
+    // Immediately restore session on mount — this is the primary mechanism
+    const initSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
+        if (currentUser) {
+          setUser(currentUser);
+          // Also get the session for the session object
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          setSession(currentSession);
+          await fetchProfile(currentUser.id);
+        }
+      } catch (error) {
+        console.error("Error restoring session:", error);
+      } finally {
+        initializedRef.current = true;
+        setLoading(false);
+      }
+    };
+
+    initSession();
+
+    // Listen for subsequent auth changes (sign in, sign out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: Session | null) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event: string, newSession: Session | null) => {
+        // Skip if this is the initial event and we already handled it above
+        if (!initializedRef.current) return;
 
-        if (session?.user) {
-          // Guard: only fetch profile once for the initial auth event
-          if (!profileFetchedRef.current) {
-            profileFetchedRef.current = true;
-            await fetchProfile(session.user.id);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user) {
+          if (event === "SIGNED_IN") {
+            await fetchProfile(newSession.user.id);
           }
         } else {
-          profileFetchedRef.current = false;
           setProfile(null);
           setPreferences(null);
         }
-
-        setLoading(false);
       }
     );
 
-    // Fallback: if onAuthStateChange hasn't fired after 1s, check session directly
-    const fallbackTimeout = setTimeout(async () => {
-      if (!profileFetchedRef.current) {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user && !profileFetchedRef.current) {
-          profileFetchedRef.current = true;
-          await fetchProfile(session.user.id);
-        }
-        setLoading(false);
-      }
-    }, 1000);
-
     return () => {
-      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
     };
   }, [supabase, fetchProfile]);
@@ -120,3 +124,4 @@ export function useAuth() {
   }
   return context;
 }
+
