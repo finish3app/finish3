@@ -148,7 +148,7 @@ export function LinearTaskRow({
         {hasAnyAction && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/20">
+              <button className="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-colors">
                 <MoreHorizontal className="w-4 h-4" />
               </button>
             </DropdownMenuTrigger>

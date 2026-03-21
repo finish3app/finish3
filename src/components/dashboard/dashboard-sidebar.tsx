@@ -9,7 +9,7 @@ import { isPro } from "@/lib/subscription";
 import {
   Sun, Inbox, CheckCircle2, BarChart3,
   Settings, LogOut, Flame, ChevronLeft, ChevronRight, Crown,
-  Plus, ChevronDown
+  Plus, ChevronDown, MoreHorizontal, Pencil, Trash2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,12 +35,35 @@ const mainNavItems = [
 
 export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [editingSpaceId, setEditingSpaceId] = useState<string | null>(null);
+  const [editSpaceName, setEditSpaceName] = useState("");
   const router = useRouter();
   const pathname = usePathname();
   const { user, profile, signOut } = useAuth();
-  const { streak, spaces, getDailyTop3, getCompletedTasks } = useDashboard();
+  const { streak, spaces, getDailyTop3, getCompletedTasks, updateSpace, deleteSpace } = useDashboard();
 
   const todayCount = getDailyTop3().length;
+
+  const startRenameSpace = (space: any) => {
+    setEditingSpaceId(space.id);
+    setEditSpaceName(space.name);
+  };
+
+  const handleRenameSubmit = async (space: any) => {
+    if (editSpaceName.trim() !== "" && editSpaceName.trim() !== space.name) {
+      await updateSpace(space.id, { name: editSpaceName.trim() });
+    }
+    setEditingSpaceId(null);
+  };
+
+  const handleDeleteSpace = async (space: any) => {
+    if (window.confirm(`Are you sure you want to delete "${space.name}"?`)) {
+      await deleteSpace(space.id);
+      if (pathname === `/dashboard/spaces/${space.id}`) {
+        router.push("/dashboard/spaces");
+      }
+    }
+  };
   const completedCount = getCompletedTasks().length;
 
   const navigate = (href: string) => {
@@ -178,22 +201,90 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
               </div>
             )}
             <div className="space-y-1">
-              {spaces.map((space) => (
-                <button
+              {spaces.map((space) => {
+                const isActive = pathname === `/dashboard/spaces/${space.id}`;
+                return (
+                <div
                   key={space.id}
-                  onClick={() => navigate(`/dashboard/spaces/${space.id}`)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    pathname === `/dashboard/spaces/${space.id}`
+                    "group relative w-full flex items-center rounded-lg text-sm font-medium transition-colors",
+                    isActive
                       ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50",
-                    collapsed && "justify-center px-0"
+                    collapsed && "justify-center"
                   )}
                 >
-                  <span className="text-base flex-shrink-0 h-[18px] w-[18px] flex items-center justify-center">{space.emoji}</span>
-                  {!collapsed && <span className="truncate flex-1 text-left">{space.name}</span>}
-                </button>
-              ))}
+                  <button
+                    onClick={() => {
+                      if (editingSpaceId !== space.id) {
+                        navigate(`/dashboard/spaces/${space.id}`);
+                      }
+                    }}
+                    className={cn("flex items-center gap-3 w-full py-2 outline-none", collapsed ? "px-0 justify-center flex-1" : "pl-3 pr-8 flex-1")}
+                  >
+                    <span className="text-base flex-shrink-0 h-[18px] w-[18px] flex items-center justify-center">{space.emoji}</span>
+                    {!collapsed && (
+                      editingSpaceId === space.id ? (
+                        <input
+                          autoFocus
+                          type="text"
+                          value={editSpaceName}
+                          onChange={(e) => setEditSpaceName(e.target.value)}
+                          onBlur={() => handleRenameSubmit(space)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleRenameSubmit(space);
+                            } else if (e.key === "Escape") {
+                              setEditingSpaceId(null);
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 min-w-0 bg-white border border-blue-400 rounded px-1.5 py-0.5 text-sm text-gray-900 outline-none focus:ring-1 focus:ring-blue-400"
+                        />
+                      ) : (
+                        <span className="truncate flex-1 text-left">{space.name}</span>
+                      )
+                    )}
+                  </button>
+
+                  {!collapsed && editingSpaceId !== space.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          className="absolute right-1 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 h-7 w-7 flex items-center justify-center rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 focus:outline-none transition-all"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setTimeout(() => startRenameSpace(space), 10);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSpace(space);
+                          }}
+                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete space
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              )})}
               <button
                 onClick={() => navigate("/dashboard/spaces")}
                 className={cn(

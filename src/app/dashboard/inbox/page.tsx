@@ -63,9 +63,9 @@ export default function InboxPage() {
           </div>
           <button
             onClick={() => setDialogOpen(true)}
-            className="group flex items-center justify-center gap-2 h-9 px-3.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors shrink-0"
+            className="group flex items-center justify-center gap-2 h-9 px-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-sm font-medium rounded-md shadow-sm transition-colors shrink-0"
           >
-            <Plus className="w-4 h-4 opacity-80" />
+            <Plus className="w-4 h-4 text-gray-500" />
             <span className="hidden sm:inline">Add task</span>
           </button>
         </div>
