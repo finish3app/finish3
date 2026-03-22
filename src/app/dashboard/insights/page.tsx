@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { useDashboard } from "@/contexts/dashboard-context";
 import { useAuth } from "@/contexts/auth-context";
 import { canViewFullInsights } from "@/lib/subscription";
+import { calculateStreakStatus } from "@/lib/streak";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, CheckCircle2, Flame, Target, TrendingUp, Lock, Crown } from "lucide-react";
@@ -25,13 +26,15 @@ export default function InsightsPage() {
     const dailyTop3Today = todayCompleted.filter((t) => t.is_daily_top_3);
     const todayProgress = dailyTop3Today.length;
 
+    const streakStatus = calculateStreakStatus(streak);
+
     return {
       weeklyCount: thisWeek.length,
       allTimeCount: completed.length,
       todayProgress,
       todayTotal: tasks.filter((t) => t.is_daily_top_3).length,
-      currentStreak: streak?.current_streak || 0,
-      longestStreak: streak?.longest_streak || 0,
+      currentStreak: streakStatus.current,
+      longestStreak: Math.max(streak?.longest_streak || 0, streakStatus.current),
     };
   }, [tasks, streak]);
 

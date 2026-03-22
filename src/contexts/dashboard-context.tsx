@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import type { Task, CustomSpace, Label, DailyStreak } from "@/lib/types";
 import { toast } from "sonner";
 import { TaskOrigin, getTaskOrigins, setTaskOrigin, removeTaskOrigin } from "@/lib/task-origins";
+import { getMissedWeekdays } from "@/lib/streak";
 
 interface DashboardContextType {
   // Data
@@ -196,17 +197,20 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const today = new Date().toISOString().split("T")[0];
 
     if (streak) {
-      const lastDate = streak.last_completed_date;
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-
-      let newStreak = streak.current_streak;
-      if (lastDate === today) {
+      if (streak.last_completed_date === today) {
         // Already updated today
         return;
-      } else if (lastDate === yesterday) {
+      }
+
+      const missed = streak.last_completed_date 
+        ? getMissedWeekdays(streak.last_completed_date, today) 
+        : 0;
+
+      let newStreak = streak.current_streak;
+      if (missed === 0 || missed === 1) {
         newStreak += 1;
       } else {
-        newStreak = 1;
+        newStreak = 1; // Grace period expired, reset streak
       }
 
       const longestStreak = Math.max(newStreak, streak.longest_streak);

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useDashboard } from "@/contexts/dashboard-context";
+import { calculateStreakStatus } from "@/lib/streak";
 import { cn } from "@/lib/utils";
 import { isPro } from "@/lib/subscription";
 import {
@@ -41,6 +42,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
   const pathname = usePathname();
   const { user, profile, signOut } = useAuth();
   const { streak, spaces, getDailyTop3, getCompletedTasks, updateSpace, deleteSpace } = useDashboard();
+  const streakStatus = calculateStreakStatus(streak);
 
   const todayCount = getDailyTop3().length;
 
@@ -99,13 +101,26 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 -mx-1.5 hover:bg-sidebar-accent/50 transition-colors w-full",
+                  "flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 hover:bg-sidebar-accent/50 transition-colors w-full",
                   collapsed && "justify-center"
                 )}
               >
-                <span className="text-[15px] font-semibold text-sidebar-foreground truncate">{workspaceName}</span>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-[15px] font-semibold text-sidebar-foreground truncate">{workspaceName}</span>
+                  {!collapsed && streakStatus.current > 0 && (
+                    <div className="flex items-center gap-0.5 flex-shrink-0 bg-sidebar-accent/50 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[13px] font-bold text-sidebar-foreground mr-0.5">
+                        {streakStatus.current}
+                      </span>
+                      <Flame className="h-3.5 w-3.5 text-orange-500 animate-streak-pulse" />
+                      {streakStatus.inGrace && (
+                        <span className="ml-1 text-[13px] leading-none" title="Streak at risk!">⏳</span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {!collapsed && (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-auto flex-shrink-0" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -129,23 +144,9 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
           </DropdownMenu>
         </div>
 
-        {/* Streak */}
-        {streak && streak.current_streak > 0 && (
-          <div className={cn("px-4 py-3", collapsed && "px-2 flex justify-center")}>
-            <div className="flex items-center gap-2 text-sm">
-              <Flame className="h-4 w-4 text-orange-500 animate-streak-pulse" />
-              {!collapsed && (
-                <span className="text-sidebar-foreground font-medium">
-                  {streak.current_streak} day streak
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto scrollbar-thin">
-          
+
           {/* MAIN GROUP */}
           <div>
             {!collapsed && (
@@ -174,7 +175,7 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
                     )}
                   >
                     <item.icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive ? "text-amber-600" : "text-gray-400")} />
-                    {!collapsed && 
+                    {!collapsed &&
                       <div className="flex flex-1 items-center justify-between">
                         <span>{item.label}</span>
                         {item.href === "/dashboard/completed" && completedCount > 0 && (
@@ -204,87 +205,88 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
               {spaces.map((space) => {
                 const isActive = pathname === `/dashboard/spaces/${space.id}`;
                 return (
-                <div
-                  key={space.id}
-                  className={cn(
-                    "group relative w-full flex items-center rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50",
-                    collapsed && "justify-center"
-                  )}
-                >
-                  <button
-                    onClick={() => {
-                      if (editingSpaceId !== space.id) {
-                        navigate(`/dashboard/spaces/${space.id}`);
-                      }
-                    }}
-                    className={cn("flex items-center gap-3 w-full py-2 outline-none", collapsed ? "px-0 justify-center flex-1" : "pl-3 pr-8 flex-1")}
-                  >
-                    <span className="text-base flex-shrink-0 h-[18px] w-[18px] flex items-center justify-center">{space.emoji}</span>
-                    {!collapsed && (
-                      editingSpaceId === space.id ? (
-                        <input
-                          autoFocus
-                          type="text"
-                          value={editSpaceName}
-                          onChange={(e) => setEditSpaceName(e.target.value)}
-                          onBlur={() => handleRenameSubmit(space)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleRenameSubmit(space);
-                            } else if (e.key === "Escape") {
-                              setEditingSpaceId(null);
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-1 min-w-0 bg-white border border-blue-400 rounded px-1.5 py-0.5 text-sm text-gray-900 outline-none focus:ring-1 focus:ring-blue-400"
-                        />
-                      ) : (
-                        <span className="truncate flex-1 text-left">{space.name}</span>
-                      )
+                  <div
+                    key={space.id}
+                    className={cn(
+                      "group relative w-full flex items-center rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                      collapsed && "justify-center"
                     )}
-                  </button>
+                  >
+                    <button
+                      onClick={() => {
+                        if (editingSpaceId !== space.id) {
+                          navigate(`/dashboard/spaces/${space.id}`);
+                        }
+                      }}
+                      className={cn("flex items-center gap-3 w-full py-2 outline-none", collapsed ? "px-0 justify-center flex-1" : "pl-3 pr-8 flex-1")}
+                    >
+                      <span className="text-base flex-shrink-0 h-[18px] w-[18px] flex items-center justify-center">{space.emoji}</span>
+                      {!collapsed && (
+                        editingSpaceId === space.id ? (
+                          <input
+                            autoFocus
+                            type="text"
+                            value={editSpaceName}
+                            onChange={(e) => setEditSpaceName(e.target.value)}
+                            onBlur={() => handleRenameSubmit(space)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleRenameSubmit(space);
+                              } else if (e.key === "Escape") {
+                                setEditingSpaceId(null);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 min-w-0 bg-white border border-blue-400 rounded px-1.5 py-0.5 text-sm text-gray-900 outline-none focus:ring-1 focus:ring-blue-400"
+                          />
+                        ) : (
+                          <span className="truncate flex-1 text-left">{space.name}</span>
+                        )
+                      )}
+                    </button>
 
-                  {!collapsed && editingSpaceId !== space.id && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          className="absolute right-1 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 h-7 w-7 flex items-center justify-center rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 focus:outline-none transition-all"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            setTimeout(() => startRenameSpace(space), 10);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteSpace(space);
-                          }}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete space
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              )})}
+                    {!collapsed && editingSpaceId !== space.id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="absolute right-1 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 h-7 w-7 flex items-center justify-center rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 focus:outline-none transition-all"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              setTimeout(() => startRenameSpace(space), 10);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSpace(space);
+                            }}
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete space
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                )
+              })}
               <button
                 onClick={() => navigate("/dashboard/spaces")}
                 className={cn(
