@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { useDashboard } from "@/contexts/dashboard-context";
 import { LinearTaskRow } from "@/components/linear-ui/linear-task-row";
 import { CheckCircle2, Search, X, Filter } from "lucide-react";
-import { format, isToday, isYesterday, isThisWeek, parseISO, compareDesc } from "date-fns";
+import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -47,47 +47,35 @@ export default function CompletedPage() {
 
   // Group by date
   const groupedTasks = useMemo(() => {
-    const buckets: Record<string, typeof filteredTasks> = {};
+    const buckets: Record<string, { sortKey: number; tasks: typeof filteredTasks }> = {};
 
     filteredTasks.forEach((task) => {
-      // Parse ISO string properly if available, else fallback to updated_at
       const dateStr = task.completed_at || task.updated_at;
       const date = dateStr ? parseISO(dateStr) : new Date();
       let label: string;
+      let sortKey: number;
 
-      if (isToday(date)) label = "Today";
-      else if (isYesterday(date)) label = "Yesterday";
-      else if (isThisWeek(date)) label = "This Week";
-      else label = format(date, "MMMM yyyy");
+      if (isToday(date)) {
+        label = "Today";
+        sortKey = 0;
+      } else if (isYesterday(date)) {
+        label = "Yesterday";
+        sortKey = 1;
+      } else {
+        // Group by exact date, e.g. "Monday, March 20, 2026"
+        label = format(date, "EEEE, MMMM d, yyyy");
+        // Use negative timestamp so newer dates sort first
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        sortKey = 2 + (Date.now() - dayStart.getTime());
+      }
 
-      if (!buckets[label]) buckets[label] = [];
-      buckets[label].push(task);
+      if (!buckets[label]) buckets[label] = { sortKey, tasks: [] };
+      buckets[label].tasks.push(task);
     });
 
-    // Formatting them into an ordered array
-    const sortedGroupLabels = Object.keys(buckets).sort((a, b) => {
-      // Constant explicit ordering hierarchy
-      const priority: Record<string, number> = {
-        "Today": 1,
-        "Yesterday": 2,
-        "This Week": 3
-      };
-
-      const pA = priority[a] || 99;
-      const pB = priority[b] || 99;
-
-      if (pA !== pB) return pA - pB;
-
-      // If both are month strings, parse and sort descending
-      const dateA = new Date(`1 ${a}`);
-      const dateB = new Date(`1 ${b}`);
-      return compareDesc(dateA, dateB);
-    });
-
-    return sortedGroupLabels.map(label => ({
-      label,
-      tasks: buckets[label]
-    }));
+    return Object.entries(buckets)
+      .sort(([, a], [, b]) => a.sortKey - b.sortKey)
+      .map(([label, { tasks }]) => ({ label, tasks }));
   }, [filteredTasks]);
 
   const getFilterLabel = () => {

@@ -69,11 +69,19 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
         .order("order_index");
       if (data) {
         setBlocks(
-          data.map((b: any) => ({
-            id: b.id,
-            type: b.type as any,
-            content: b.content?.text || "",
-          }))
+          data.map((b: any) => {
+            let type = b.type;
+            if (b.type === "heading" && b.content?.level === 1) {
+              type = "heading1";
+            } else if (b.type === "heading" && b.content?.level === 3) {
+              type = "heading3";
+            }
+            return {
+              id: b.id,
+              type: type as any,
+              content: b.content?.text || "",
+            };
+          })
         );
       }
     };
@@ -84,14 +92,27 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
     if (!user || !space) return;
     setBlocks(newBlocks);
     
-    const dbBlocks = newBlocks.map((b, i) => ({
-      id: b.id,
-      space_id: space.id,
-      user_id: user.id,
-      type: b.type,
-      content: { text: b.content },
-      order_index: i
-    }));
+    const dbBlocks = newBlocks.map((b, i) => {
+      let dbType: string = b.type;
+      let content: Record<string, unknown> = { text: b.content };
+
+      if (b.type === "heading1") {
+        dbType = "heading";
+        content = { text: b.content, level: 1 };
+      } else if (b.type === "heading3") {
+        dbType = "heading";
+        content = { text: b.content, level: 3 };
+      }
+
+      return {
+        id: b.id,
+        space_id: space.id,
+        user_id: user.id,
+        type: dbType,
+        content,
+        order_index: i,
+      };
+    });
 
     const currentIds = newBlocks.map(b => b.id);
     const deletedIds = blocks.filter(b => !currentIds.includes(b.id)).map(b => b.id);

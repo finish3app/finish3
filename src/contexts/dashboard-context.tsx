@@ -96,14 +96,26 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const addTask = async (taskData: Partial<Task>): Promise<Task | null> => {
     if (!user) return null;
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("tasks")
       .insert({ ...taskData, user_id: user.id })
       .select()
       .single();
 
+    // Fallback: if block_id FK constraint fails, retry without block_id
+    if (error && error.message?.includes("block_id")) {
+      const { block_id: _, ...taskDataWithoutBlock } = taskData as any;
+      const result = await supabase
+        .from("tasks")
+        .insert({ ...taskDataWithoutBlock, user_id: user.id })
+        .select()
+        .single();
+      data = result.data;
+      error = result.error;
+    }
+
     if (error) {
-      console.error("addTask error:", error);
+      console.error("addTask error:", error.message, error.details, error.hint, error.code);
       toast.error("Failed to create task");
       return null;
     }

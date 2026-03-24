@@ -52,7 +52,7 @@ export interface SpaceBlock {
   id: string;
   space_id: string;
   user_id: string;
-  type: "text" | "heading" | "task_list" | "task_item" | "divider";
+  type: "text" | "heading1" | "heading" | "heading3" | "task_list" | "task_item" | "divider";
   content: Record<string, unknown>;
   parent_id: string | null;
   order_index: number;

@@ -14,7 +14,9 @@ import {
   Plus,
   Trash2,
   Type,
+  Heading1,
   Heading2,
+  Heading3,
   CheckSquare,
   Minus,
 } from "lucide-react";
@@ -22,7 +24,7 @@ import type { CustomSpace, Task } from "@/lib/types";
 
 export interface SpaceBlock {
   id: string;
-  type: "text" | "heading" | "task_list" | "divider";
+  type: "text" | "heading1" | "heading" | "heading3" | "task_list" | "divider";
   content: string; // for text or heading blocks 
 }
 
@@ -108,8 +110,14 @@ export function BlockEditor({
         <DropdownMenuItem onClick={() => addBlock("text")} className="gap-2 cursor-pointer text-sm font-medium">
           <Type className="w-4 h-4 text-gray-400" /> Text
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => addBlock("heading1")} className="gap-2 cursor-pointer text-sm font-medium">
+          <Heading1 className="w-4 h-4 text-gray-400" /> Heading 1
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => addBlock("heading")} className="gap-2 cursor-pointer text-sm font-medium">
-          <Heading2 className="w-4 h-4 text-gray-400" /> Heading
+          <Heading2 className="w-4 h-4 text-gray-400" /> Heading 2
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => addBlock("heading3")} className="gap-2 cursor-pointer text-sm font-medium">
+          <Heading3 className="w-4 h-4 text-gray-400" /> Heading 3
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => addBlock("task_list")} className="gap-2 cursor-pointer text-sm font-medium">
           <CheckSquare className="w-4 h-4 text-gray-400" /> Task List
@@ -166,18 +174,40 @@ export function BlockEditor({
                   />
                 )}
 
+                {block.type === "heading1" && (
+                  <input
+                    type="text"
+                    value={block.content}
+                    onChange={(e) => updateBlock(block.id, e.target.value)}
+                    placeholder="Heading 1"
+                    className="w-full bg-transparent border-none focus:ring-0 text-3xl font-bold text-gray-900 placeholder:text-gray-300 py-2 pt-4 outline-none"
+                  />
+                )}
+
                 {block.type === "heading" && (
                   <input
                     type="text"
                     value={block.content}
                     onChange={(e) => updateBlock(block.id, e.target.value)}
-                    placeholder="Heading"
+                    placeholder="Heading 2"
                     className="w-full bg-transparent border-none focus:ring-0 text-2xl font-bold text-gray-900 placeholder:text-gray-300 py-2 pt-4 outline-none"
                   />
                 )}
 
+                {block.type === "heading3" && (
+                  <input
+                    type="text"
+                    value={block.content}
+                    onChange={(e) => updateBlock(block.id, e.target.value)}
+                    placeholder="Heading 3"
+                    className="w-full bg-transparent border-none focus:ring-0 text-xl font-semibold text-gray-900 placeholder:text-gray-300 py-1.5 pt-3 outline-none"
+                  />
+                )}
+
                 {block.type === "divider" && (
-                  <hr className="border-gray-100 my-4 border-dashed" />
+                  <div className="py-3 w-full">
+                    <hr className="w-full border-t border-gray-200" />
+                  </div>
                 )}
 
                 {block.type === "task_list" && (
@@ -185,7 +215,7 @@ export function BlockEditor({
                      <div className="space-y-0.5">
                        {/* Map tasks tied to this specific block & space */}
                        {tasks
-                         .filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed)
+                         .filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3)
                          .map((task) => (
                            <LinearTaskRow
                              key={task.id}
@@ -199,7 +229,7 @@ export function BlockEditor({
                      </div>
 
                      <div className="mt-2 text-left">
-                       {tasks.filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed).length === 0 ? (
+                       {tasks.filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3).length === 0 ? (
                           <button
                              onClick={() => onOpenTaskDialog(block.id)}
                              className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 hover:border-gray-300 rounded px-3 py-1.5 transition-colors focus:outline-none"
@@ -223,9 +253,9 @@ export function BlockEditor({
             </div>
           ))}
           
-          {/* Add block inline variation after last block */}
-          <div className="pt-2 -ml-8 flex opacity-0 group-hover/editor:opacity-100 transition-opacity">
-            <BlockMenuDropdown inline />
+          {/* Add block button after last block — always visible */}
+          <div className="mt-4">
+            <BlockMenuDropdown />
           </div>
         </div>
       )}
