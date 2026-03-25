@@ -43,9 +43,9 @@ export const PLAN_FEATURES = {
   },
   pro: {
     name: "Pro",
-    monthlyPrice: "$8/month",
-    yearlyPrice: "$64/year",
-    yearlySavings: "Save 33%",
+    monthlyPrice: "$7/month",
+    yearlyPrice: "$49/year",
+    yearlySavings: "Save 42%",
     features: [
       "Everything in Free",
       "Unlimited Spaces",

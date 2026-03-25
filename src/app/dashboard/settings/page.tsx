@@ -162,20 +162,20 @@ export default function SettingsPage() {
                     billingType === "yearly" ? "bg-background shadow-sm" : "text-muted-foreground"
                   }`}
                 >
-                  Yearly <Badge variant="green" className="ml-1 text-[10px]">Save 33%</Badge>
+                  Yearly <Badge variant="green" className="ml-1 text-[10px]">Save 42%</Badge>
                 </button>
               </div>
 
               {/* Price */}
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">
-                  {billingType === "monthly" ? "$8" : "$64"}
+                  {billingType === "monthly" ? "$7" : "$49"}
                   <span className="text-base font-normal text-muted-foreground">
                     /{billingType === "monthly" ? "mo" : "yr"}
                   </span>
                 </p>
                 {billingType === "yearly" && (
-                  <p className="text-xs text-muted-foreground mt-1">~$5.33/month</p>
+                  <p className="text-xs text-muted-foreground mt-1">~$4/month</p>
                 )}
               </div>
 
