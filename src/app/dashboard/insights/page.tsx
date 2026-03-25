@@ -119,7 +119,7 @@ export default function InsightsPage() {
               See all-time stats, trends, streak history, and more with Pro.
             </p>
             <Button variant="brand" onClick={() => router.push("/dashboard/settings")}>
-              Upgrade to Pro — $8/mo
+              Upgrade to Pro — $7/mo
             </Button>
           </CardContent>
         </Card>
