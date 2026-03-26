@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import TextareaAutosize from 'react-textarea-autosize';
 import { useDashboard } from "@/contexts/dashboard-context";
 import { LinearTaskRow } from "@/components/linear-ui/linear-task-row";
 import {
@@ -161,16 +162,11 @@ export function BlockEditor({
               {/* --- Block Layout Rendering --- */}
               <div className="w-full">
                 {block.type === "text" && (
-                  <textarea
+                  <TextareaAutosize
                     value={block.content}
                     onChange={(e) => updateBlock(block.id, e.target.value)}
                     placeholder="Type something..."
-                    className="w-full min-h-[24px] bg-transparent border-none text-gray-700 placeholder:text-gray-300 resize-none outline-none focus:ring-0 text-base py-1 leading-relaxed"
-                    rows={1}
-                    onInput={(e) => {
-                      e.currentTarget.style.height = 'auto';
-                      e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                    }}
+                    className="w-full min-h-[24px] bg-transparent border-none text-gray-700 placeholder:text-gray-300 resize-none outline-none focus:ring-0 text-base py-1 leading-relaxed overflow-hidden"
                   />
                 )}
 
