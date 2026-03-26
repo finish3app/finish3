@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useMemo } from "react";
+import React, { useState, useEffect, useCallback, use, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -59,34 +59,45 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  useEffect(() => {
+  const fetchBlocks = useCallback(async () => {
     if (!id || !user) return;
-    const fetchBlocks = async () => {
-      const { data } = await supabase
-        .from("space_blocks")
-        .select("*")
-        .eq("space_id", id)
-        .order("order_index");
-      if (data) {
-        setBlocks(
-          data.map((b: any) => {
-            let type = b.type;
-            if (b.type === "heading" && b.content?.level === 1) {
-              type = "heading1";
-            } else if (b.type === "heading" && b.content?.level === 3) {
-              type = "heading3";
-            }
-            return {
-              id: b.id,
-              type: type as any,
-              content: b.content?.text || "",
-            };
-          })
-        );
+    const { data } = await supabase
+      .from("space_blocks")
+      .select("*")
+      .eq("space_id", id)
+      .order("order_index");
+    if (data) {
+      setBlocks(
+        data.map((b: any) => {
+          let type = b.type;
+          if (b.type === "heading" && b.content?.level === 1) {
+            type = "heading1";
+          } else if (b.type === "heading" && b.content?.level === 3) {
+            type = "heading3";
+          }
+          return {
+            id: b.id,
+            type: type as any,
+            content: b.content?.text || "",
+          };
+        })
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user]);
+
+  // Fetch blocks on mount and refetch when tab becomes visible again
+  useEffect(() => {
+    fetchBlocks();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchBlocks();
       }
     };
-    fetchBlocks();
-  }, [id, user, supabase]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [fetchBlocks]);
 
   const handleBlocksChange = async (newBlocks: SpaceBlock[]) => {
     if (!user || !space) return;
