@@ -7,6 +7,7 @@ import type { Task, CustomSpace, Label, DailyStreak } from "@/lib/types";
 import { toast } from "sonner";
 import { TaskOrigin, getTaskOrigins, setTaskOrigin, removeTaskOrigin } from "@/lib/task-origins";
 import { getMissedWeekdays } from "@/lib/streak";
+import { prefetchAllSpaceBlocks } from "@/hooks/use-space-blocks";
 
 interface DashboardContextType {
   // Data
@@ -72,7 +73,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       if (tasksRes.data) setTasks(tasksRes.data as Task[]);
-      if (spacesRes.data) setSpaces(spacesRes.data as CustomSpace[]);
+      if (spacesRes.data) {
+        setSpaces(spacesRes.data as CustomSpace[]);
+        // Pre-fetch blocks for ALL spaces into the global cache
+        const spaceIds = (spacesRes.data as CustomSpace[]).map(s => s.id);
+        prefetchAllSpaceBlocks(spaceIds);
+      }
       if (labelsRes.data) setLabels(labelsRes.data as Label[]);
       if (streakRes.data) setStreak(streakRes.data as DailyStreak);
     } catch (error) {

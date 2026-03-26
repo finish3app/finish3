@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, use, useMemo } from "react";
+import React, { useState, useEffect, use, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { useDashboard } from "@/contexts/dashboard-context";
 import { BlockEditor, type SpaceBlock } from "@/components/block-editor";
+import { useSpaceBlocks } from "@/hooks/use-space-blocks";
 import { TaskCreationDialog } from "@/components/task-creation-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,62 +48,22 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const router = useRouter();
   const { spaces, updateSpace, deleteSpace, toggleComplete, moveToToday, moveToInbox, deleteTask } = useDashboard();
-  
+
   const [space, setSpace] = useState<CustomSpace | null>(null);
-  
+
   const { user } = useAuth();
   const supabase = createClient();
-  const [blocks, setBlocks] = useState<SpaceBlock[]>([]); 
-  
+  const { blocks, setBlocks } = useSpaceBlocks(id);
+
   const [titleValue, setTitleValue] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const fetchBlocks = useCallback(async () => {
-    if (!id || !user) return;
-    const { data } = await supabase
-      .from("space_blocks")
-      .select("*")
-      .eq("space_id", id)
-      .order("order_index");
-    if (data) {
-      setBlocks(
-        data.map((b: any) => {
-          let type = b.type;
-          if (b.type === "heading" && b.content?.level === 1) {
-            type = "heading1";
-          } else if (b.type === "heading" && b.content?.level === 3) {
-            type = "heading3";
-          }
-          return {
-            id: b.id,
-            type: type as any,
-            content: b.content?.text || "",
-          };
-        })
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user]);
-
-  // Fetch blocks on mount and refetch when tab becomes visible again
-  useEffect(() => {
-    fetchBlocks();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        fetchBlocks();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [fetchBlocks]);
-
   const handleBlocksChange = async (newBlocks: SpaceBlock[]) => {
     if (!user || !space) return;
     setBlocks(newBlocks);
-    
+
     const dbBlocks = newBlocks.map((b, i) => {
       let dbType: string = b.type;
       let content: Record<string, unknown> = { text: b.content };
@@ -131,9 +92,9 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
     if (deletedIds.length > 0) {
       await supabase.from("space_blocks").delete().in("id", deletedIds);
     }
-    
+
     if (dbBlocks.length > 0) {
-       await supabase.from("space_blocks").upsert(dbBlocks);
+      await supabase.from("space_blocks").upsert(dbBlocks);
     }
   };
 
@@ -201,23 +162,23 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="h-full relative bg-white min-h-screen">
-      
+
       {/* 2.4 Cover Area */}
       <div className={`group relative h-48 w-full bg-gradient-to-r ${gradientClass} transition-colors duration-500`}>
         {/* Navigation back overlay helper */}
         <div className="absolute top-4 left-4 z-10">
-           <button
-             onClick={() => router.push("/dashboard/spaces")}
-             className="flex items-center gap-2 px-3 py-1.5 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-800 transition-colors"
-           >
-             <ArrowLeft className="w-4 h-4" /> Spaces
-           </button>
+          <button
+            onClick={() => router.push("/dashboard/spaces")}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Spaces
+          </button>
         </div>
 
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-        <Button 
-          variant="secondary" 
-          size="sm" 
+        <Button
+          variant="secondary"
+          size="sm"
           className="absolute bottom-4 right-8 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white transition-opacity"
         >
           <ImageIcon className="w-4 h-4 mr-2" /> Change cover
@@ -226,7 +187,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* 2.3 Content Area */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 md:px-12 pb-32 -mt-12 relative z-10">
-        
+
         {/* 2.5 Emoji Picker */}
         <div className="mb-4">
           <Popover>
@@ -236,9 +197,9 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 border-none shadow-none bg-transparent" align="start" sideOffset={8}>
-               <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
-                 <EmojiPicker onEmojiClick={handleEmojiChange} lazyLoadEmojis={true} />
-               </div>
+              <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+                <EmojiPicker onEmojiClick={handleEmojiChange} lazyLoadEmojis={true} />
+              </div>
             </PopoverContent>
           </Popover>
         </div>
@@ -258,7 +219,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
             placeholder="Untitled"
             className="text-3xl sm:text-4xl font-bold text-gray-900 placeholder:text-gray-300 bg-transparent border-none focus:ring-0 p-0 w-full outline-none leading-tight"
           />
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 text-gray-400 focus:opacity-100 mt-2 shrink-0">
@@ -266,10 +227,10 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => {
-                   // Focus trick by finding the massive title input above
-                   document.querySelector<HTMLInputElement>("input.text-4xl")?.focus();
+                  // Focus trick by finding the massive title input above
+                  document.querySelector<HTMLInputElement>("input.text-4xl")?.focus();
                 }}
               >
                 Rename

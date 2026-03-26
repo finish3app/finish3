@@ -132,7 +132,7 @@ export function BlockEditor({
 
   return (
     <div className="group/editor min-h-[200px] pl-1 pb-20 relative">
-      
+
       {/* Empty State */}
       {blocks.length === 0 ? (
         <div className="mt-4">
@@ -142,7 +142,7 @@ export function BlockEditor({
         <div className="space-y-1">
           {blocks.map((block) => (
             <div key={block.id} className="group/block relative -ml-10 pl-10 hover:bg-gray-50/30 rounded-lg py-1 transition-colors">
-              
+
               {/* Visual Anchor (Left Controls) */}
               <div className="absolute left-0 top-1.5 opacity-0 group-hover/block:opacity-100 transition-opacity flex items-center justify-center">
                 <DropdownMenu>
@@ -208,47 +208,47 @@ export function BlockEditor({
 
                 {block.type === "task_list" && (
                   <div className="py-2">
-                     <div className="space-y-0.5">
-                       {/* Map tasks tied to this specific block & space */}
-                       {tasks
-                         .filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3)
-                         .map((task) => (
-                           <LinearTaskRow
-                             key={task.id}
-                             task={task}
-                             onToggleComplete={onTaskComplete}
-                             onDelete={onDeleteTask}
-                             onMoveToToday={onTaskMoveToToday}
-                             onMoveToInbox={onTaskMoveToInbox}
-                           />
-                       ))}
-                     </div>
+                    <div className="space-y-0.5">
+                      {/* Map tasks tied to this specific block & space */}
+                      {tasks
+                        .filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3)
+                        .map((task) => (
+                          <LinearTaskRow
+                            key={task.id}
+                            task={task}
+                            onToggleComplete={onTaskComplete}
+                            onDelete={onDeleteTask}
+                            onMoveToToday={onTaskMoveToToday}
+                            onMoveToInbox={onTaskMoveToInbox}
+                          />
+                        ))}
+                    </div>
 
-                     <div className="mt-2 text-left">
-                       {tasks.filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3).length === 0 ? (
-                          <button
-                             onClick={() => onOpenTaskDialog(block.id)}
-                             className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 hover:border-gray-300 rounded px-3 py-1.5 transition-colors focus:outline-none"
-                          >
-                             <Plus className="w-3.5 h-3.5 mr-1.5" />
-                             Add a task to list
-                          </button>
-                       ) : (
-                          <button
-                             onClick={() => onOpenTaskDialog(block.id)}
-                             className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors ml-8 focus:outline-none"
-                          >
-                             <Plus className="w-3.5 h-3.5 mr-1" />
-                             New item
-                          </button>
-                       )}
-                     </div>
+                    <div className="mt-2 text-left">
+                      {tasks.filter(t => t.space_id === space.id && t.block_id === block.id && !t.is_completed && !t.is_daily_top_3).length === 0 ? (
+                        <button
+                          onClick={() => onOpenTaskDialog(block.id)}
+                          className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 hover:border-gray-300 rounded px-3 py-1.5 transition-colors focus:outline-none"
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1.5" />
+                          Add a task to list
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onOpenTaskDialog(block.id)}
+                          className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors ml-8 focus:outline-none"
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1" />
+                          New item
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           ))}
-          
+
           {/* Add block button after last block — always visible */}
           <div className="mt-4">
             <BlockMenuDropdown />
